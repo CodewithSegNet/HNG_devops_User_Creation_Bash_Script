@@ -49,6 +49,8 @@ check_and_create_group() {
         else
             log_action "Failed to create group $group_name"
         fi
+    else
+        log_action "Group $group_name already exists"
     fi
 }
 
@@ -61,6 +63,24 @@ while IFS=';' read -r username groups; do
     # Check if user exists
     if id "$username" &>/dev/null; then
         log_action "User $username already exists. Skipping..."
+        # Check and create user's personal group if it doesn't exist
+        check_and_create_group "$username"
+
+        # Add user to specified groups
+        IFS=',' read -ra user_groups <<< "$groups"
+        for group in "${user_groups[@]}"; do
+            # Check and create group if it doesn't exist
+            check_and_create_group "$group"
+
+            # Add user to the group
+            sudo usermod -aG "$group" "$username"
+            if [ $? -eq 0 ]; then
+                log_action "Added user $username to group $group"
+            else
+                log_action "Failed to add user $username to group $group"
+            fi
+        done
+
         continue
     fi
 
