@@ -8,3 +8,12 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
+# get file name from the arg
+FILE =  $1
+
+
+# check if the file exist
+if [ ! -f "$FILE" ]; then
+    echo "File $FILE not found!"
+    exit 1
+fi
