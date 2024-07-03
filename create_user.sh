@@ -42,6 +42,10 @@ while IFS=';' read -r username groups; do
     # Add user to specified groups
     IFS=',' read -ra user_groups <<< "$groups"
     for group in "${user_groups[@]}"; do
+        # create group if it doesn't exist
+        if ! getent group "$group" &>/dev/null; then
+            sudo groupadd "$group"
+        fi
         sudo usermod -aG "$group" "$username"
     done
 
@@ -59,3 +63,6 @@ while IFS=';' read -r username groups; do
     echo "$username,$password" | sudo tee -a /var/secure/user_passwords.csv > /dev/null
 
 done < "$FILE"
+
+# set correct permission for the passwords file
+sudo chmod 600 /var/secure/user_passwords.csv
